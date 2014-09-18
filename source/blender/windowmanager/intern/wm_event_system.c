@@ -398,7 +398,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	static bool do_wheel_ui = true;
 	const bool is_wheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN);
 	int retval;
-	
+
 	/* UI code doesn't handle return values - it just always returns break. 
 	 * to make the DBL_CLICK conversion work, we just don't send this to UI, except mouse clicks */
 	if (((handler->flag & WM_HANDLER_ACCEPT_DBL_CLICK) == 0) &&
@@ -1458,7 +1458,11 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	if (kmitype != KM_ANY)
 		if (winevent->type != kmitype) return 0;
 	
-	if (kmi->val != KM_ANY)
+	if (kmi->clickstyle) {
+//		printf("isso\n");
+		if (winevent->clickstyle != kmi->clickstyle) return 0;
+	}
+	else if (kmi->val != KM_ANY)
 		if (winevent->val != kmi->val) return 0;
 	
 	/* modifiers also check bits, so it allows modifier order */
@@ -2993,6 +2997,15 @@ static bool wm_event_is_double_click(wmEvent *event, wmEvent *event_state)
 	return false;
 }
 
+static bool wm_event_is_hold(wmEvent *event, wmEvent *event_state)
+{
+	if (event->type == event_state->prevtype && event_state->prevval == KM_PRESS)
+		if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 500 > U.dbl_click_time)
+			return true;
+
+	return false;
+}
+
 static void wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
 {
 	wmEvent *event_last = win->queue.last;
@@ -3238,6 +3251,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 					printf("%s Send double click\n", __func__);
 				evt->val = event.val = KM_DBL_CLICK;
 			}
+#ifdef KM_USE_STICKYS
+			else if (wm_event_is_hold(&event, evt))
+				if (!(ELEM(KM_HOLD, evt->clickstyle, event.clickstyle)))
+					evt->clickstyle = event.clickstyle = KM_HOLD;
+#endif
 			
 			/* this case happens on holding a key pressed, it should not generate
 			 * press events events with the same key as modifier */
@@ -3258,11 +3276,17 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				G.is_break = true;
 			}
 			
-			/* double click test - only for press */
-			if (event.val == KM_PRESS) {
+			/* clickstyle test */
+			if (event.val == KM_PRESS && evt->prevval != KM_PRESS) {
 				evt->prevclicktime = PIL_check_seconds_timer();
 				evt->prevclickx = event.x;
 				evt->prevclicky = event.y;
+			}
+			if (event.val == KM_RELEASE) {
+//				event.prevclicktime = 0;
+//				event.clickstyle = 0;
+				evt->clickstyle = 0;
+				printf("%i\n", event.clickstyle);
 			}
 			
 			wm_event_add(win, &event);

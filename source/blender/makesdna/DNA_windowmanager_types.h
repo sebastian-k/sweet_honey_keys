@@ -237,6 +237,7 @@ typedef struct wmKeyMapItem {
 	/* event */
 	short type;                     /* event code itself */
 	short val;                      /* KM_ANY, KM_PRESS, KM_NOTHING etc */
+	short clickstyle;               /* KM_CLICK, KM_HOLD, KM_DBL_CLICK */
 	short shift, ctrl, alt, oskey;  /* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;              /* rawkey modifier */
 
@@ -246,7 +247,7 @@ typedef struct wmKeyMapItem {
 	/* runtime */
 	short maptype;                  /* keymap editor */
 	short id;                       /* unique identifier. Positive for kmi that override builtins, negative otherwise */
-	short pad;
+	int pad[2];
 	struct PointerRNA *ptr;         /* rna pointer to access properties */
 } wmKeyMapItem;
 

@@ -157,6 +157,8 @@ enum {
 
 /* ************** wmKeyMap ************************ */
 
+#define KM_USE_STICKYS
+
 /* modifier */
 #define KM_SHIFT	1
 #define KM_CTRL		2
@@ -181,8 +183,11 @@ enum {
 #define KM_NOTHING	0
 #define KM_PRESS	1
 #define KM_RELEASE	2
-#define KM_CLICK	3
-#define KM_DBL_CLICK	4
+
+/* clickstyle */
+#define KM_CLICK		3
+#define KM_HOLD			4
+#define KM_DBL_CLICK	5
 
 
 /* ************** UI Handler ***************** */
@@ -423,6 +428,7 @@ typedef struct wmEvent {
 	
 	short type;			/* event code itself (short, is also in keymap) */
 	short val;			/* press, release, scrollvalue */
+	short clickstyle;	/* click, hold or double click */
 	int x, y;			/* mouse pointer position, screen coord */
 	int mval[2];		/* region mouse position, name convention pre 2.5 :) */
 	char utf8_buf[6];	/* from, ghost if utf8 is enabled for the platform,

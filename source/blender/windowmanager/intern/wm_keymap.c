@@ -391,7 +391,11 @@ bool WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
 static void keymap_event_set(wmKeyMapItem *kmi, short type, short val, int modifier, short keymodifier)
 {
 	kmi->type = type;
-	kmi->val = val;
+	if (val < KM_CLICK)
+		kmi->val = val;
+	else {
+		kmi->clickstyle = val;
+	}
 	kmi->keymodifier = keymodifier;
 
 	if (modifier == KM_ANY) {

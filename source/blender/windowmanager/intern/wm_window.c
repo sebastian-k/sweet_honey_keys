@@ -310,7 +310,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 			Main *bmain = CTX_data_main(C);
 			BKE_libblock_free(bmain, screen);
 		}
-	}		
+	}
 }
 
 void wm_window_title(wmWindowManager *wm, wmWindow *win)

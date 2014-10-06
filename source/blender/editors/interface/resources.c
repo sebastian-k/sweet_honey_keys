@@ -2487,6 +2487,11 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (U.versionfile < 272) {
+		if (U.click_timeout == 0)
+			U.click_timeout = 15;
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

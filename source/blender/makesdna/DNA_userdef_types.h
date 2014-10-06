@@ -439,10 +439,12 @@ typedef struct UserDef {
 	short timecode_style;		/* style of timecode display */
 	
 	short versions;
+	short click_timeout;
 	short dbl_click_time;
 	
 	short gameflags;
 	short wheellinescroll;
+	short pad;
 	int uiflag, uiflag2;
 	int language;
 	short userpref, viewzoom;
@@ -458,6 +460,7 @@ typedef struct UserDef {
 	short encoding;
 	short transopts;
 	short menuthreshold1, menuthreshold2;
+	int pad4;
 	
 	struct ListBase themes;
 	struct ListBase uifonts;
@@ -523,7 +526,7 @@ typedef struct UserDef {
 	float gpencil_new_layer_col[4]; /* default color for newly created Grease Pencil layers */
 
 	short tweak_threshold;
-	char navigation_mode, pad;
+	char navigation_mode, pad2;
 
 	char author[80];	/* author name for file formats supporting it */
 
@@ -661,7 +664,8 @@ typedef enum eUserpref_UI_Flag {
 typedef enum eUserpref_UI_Flag2 {
 	USER_KEEP_SESSION		= (1 << 0),
 	USER_REGION_OVERLAP		= (1 << 1),
-	USER_TRACKPAD_NATURAL	= (1 << 2)
+	USER_TRACKPAD_NATURAL	= (1 << 2),
+	USER_PIE_USE_STICKIES	= (1 << 3)
 } eUserpref_UI_Flag2;
 	
 /* Auto-Keying mode */

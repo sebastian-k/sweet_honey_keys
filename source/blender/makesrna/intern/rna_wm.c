@@ -49,6 +49,7 @@ static EnumPropertyItem event_keymouse_value_items[] = {
 	{KM_PRESS, "PRESS", 0, "Press", ""},
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
 	{KM_CLICK, "CLICK", 0, "Click", ""},
+	{KM_HOLD, "HOLD", 0, "Hold", ""},
 	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
 	{0, NULL, 0, NULL, NULL}
 };

@@ -1458,9 +1458,8 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	if (kmitype != KM_ANY)
 		if (winevent->type != kmitype) return 0;
 	
-	if (kmi->clickstyle) {
-//		printf("isso\n");
-		if (winevent->clickstyle != kmi->clickstyle) return 0;
+	if (kmi->clicktype) {
+		if (winevent->clicktype != kmi->clicktype) return 0;
 	}
 	else if (kmi->val != KM_ANY)
 		if (winevent->val != kmi->val) return 0;
@@ -2026,31 +2025,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		/* test for CLICK events */
 		if (wm_action_not_handled(action)) {
 			wmWindow *win = CTX_wm_window(C);
-			
-			/* eventstate stores if previous event was a KM_PRESS, in case that 
-			 * wasn't handled, the KM_RELEASE will become a KM_CLICK */
-			
-			if (win && event->val == KM_PRESS) {
-				win->eventstate->check_click = true;
-			}
-			
+
 			if (win && win->eventstate->prevtype == event->type) {
-				
-				if ((event->val == KM_RELEASE) &&
-				    (win->eventstate->prevval == KM_PRESS) &&
-				    (win->eventstate->check_click == true))
-				{
-					event->val = KM_CLICK;
-					
-					if (G.debug & (G_DEBUG_HANDLERS)) {
-						printf("%s: handling CLICK\n", __func__);
-					}
-
-					action |= wm_handlers_do_intern(C, event, handlers);
-
-					event->val = KM_RELEASE;
-				}
-				else if (event->val == KM_DBL_CLICK) {
+				if (event->val == KM_DBL_CLICK) {
 					event->val = KM_PRESS;
 					action |= wm_handlers_do_intern(C, event, handlers);
 					
@@ -2060,12 +2037,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 					}
 				}
 			}
-		}
-		else {
-			wmWindow *win = CTX_wm_window(C);
-
-			if (win)
-				win->eventstate->check_click = 0;
 		}
 	}
 	
@@ -2981,10 +2952,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
 static bool wm_event_is_double_click(wmEvent *event, wmEvent *event_state)
 {
-	if ((event->type == event_state->prevtype) &&
-	    (event_state->prevval == KM_RELEASE) &&
-	    (event->val == KM_PRESS))
-	{
+	/* if previous was release, and now it presses... */
+	if ((event_state->prevval == KM_RELEASE) && (event->val == KM_PRESS)) {
 		if ((ISMOUSE(event->type) == false) || ((ABS(event->x - event_state->prevclickx)) <= 2 &&
 		                                        (ABS(event->y - event_state->prevclicky)) <= 2))
 		{
@@ -2999,11 +2968,67 @@ static bool wm_event_is_double_click(wmEvent *event, wmEvent *event_state)
 
 static bool wm_event_is_hold(wmEvent *event, wmEvent *event_state)
 {
-	if (event->type == event_state->prevtype && event_state->prevval == KM_PRESS)
-		if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 500 > U.dbl_click_time)
+	if (event->val == KM_PRESS/* && event_state->prevval != KM_RELEASE*/)
+//		if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 100 > U.click_timeout)
 			return true;
 
 	return false;
+}
+
+static bool wm_event_is_click(wmEvent *event, wmEvent *event_state)
+{
+	if (event->val == KM_RELEASE/* && event_state->clicktype != KM_DBL_CLICK*/)
+		if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 100 <= U.click_timeout)
+			return true;
+
+	return false;
+}
+
+/* Clicktype test
+ *
+ * We have 3 different clicktypes: 'KM_CLICK', 'KM_HOLD' and 'KM_DBL_CLICK'.
+ * Time is used to determine, what to send. It works as follows:
+ * KM_RELEASE && time < U.click_timeout → send KM_CLI CK
+ * KM_PRESS && time > U.click_timeout → send KM_HOLD
+ * KM_PRESS after a KM_RELEASE and time < U.dbl_click_time → send KM_DBL_CLICK */
+static void wm_event_clicktype_set(wmWindow *win, wmEvent *event, wmEvent *event_state)
+{
+	const char *str_print = "";
+	short clicktype = 0;
+
+	if (event_state->prevtype && event->type == event_state->prevtype) {
+//		/* double click test */
+//		if (wm_event_is_double_click(event, event_state)) {
+//			str_print = "KM_DBL_CLICK";
+//			clicktype = KM_DBL_CLICK;
+//		}
+		/*  held key test */
+		/*else */if (wm_event_is_hold(event, event_state)) {
+			str_print = "KM_HOLD";
+			clicktype = KM_HOLD;
+		}
+		/* single click test */
+//		else if (wm_event_is_click(event, event_state)) {
+//			str_print = "KM_CLICK";
+//			clicktype = KM_CLICK;
+//		}
+	}
+
+	if (event->val == KM_PRESS &&
+	    (event_state->prevval != KM_PRESS ||
+	     event->prevtype != win->eventstate->prevtype)) /* on window changes */
+	{
+		event_state->prevclicktime = PIL_check_seconds_timer();
+		event_state->prevclickx = event->x;
+		event_state->prevclicky = event->y;
+		printf("reset\n");
+	}
+
+	if (event->clicktype != clicktype) {
+		if (str_print[0] /*&& (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))*/)
+			printf("%s Send %s\n", __func__, str_print);
+		event_state->clicktype = event->clicktype = clicktype;
+	}
 }
 
 static void wm_event_add_mousemove(wmWindow *win, const wmEvent *event)
@@ -3138,17 +3163,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.y = evt->y = cy;
 			}
 			
-			/* double click test */
-			if (wm_event_is_double_click(&event, evt)) {
-				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))
-					printf("%s Send double click\n", __func__);
-				event.val = KM_DBL_CLICK;
-			}
-			if (event.val == KM_PRESS) {
-				evt->prevclicktime = PIL_check_seconds_timer();
-				evt->prevclickx = event.x;
-				evt->prevclicky = event.y;
-			}
+			/* clicktype */
+			wm_event_clicktype_set(win, &event, evt);
 			
 			/* add to other window if event is there (not to both!) */
 			owin = wm_event_cursor_other_windows(wm, win, &event);
@@ -3244,18 +3260,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 					break;
 			}
 
-			/* double click test */
-			/* if previous event was same type, and previous was release, and now it presses... */
-			if (wm_event_is_double_click(&event, evt)) {
-				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))
-					printf("%s Send double click\n", __func__);
-				evt->val = event.val = KM_DBL_CLICK;
-			}
-#ifdef KM_USE_STICKYS
-			else if (wm_event_is_hold(&event, evt))
-				if (!(ELEM(KM_HOLD, evt->clickstyle, event.clickstyle)))
-					evt->clickstyle = event.clickstyle = KM_HOLD;
-#endif
+			/* clicktype */
+			wm_event_clicktype_set(win, &event, evt);
 			
 			/* this case happens on holding a key pressed, it should not generate
 			 * press events events with the same key as modifier */
@@ -3274,19 +3280,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			    (event.shift == 0 && event.ctrl == 0 && event.alt == 0))
 			{
 				G.is_break = true;
-			}
-			
-			/* clickstyle test */
-			if (event.val == KM_PRESS && evt->prevval != KM_PRESS) {
-				evt->prevclicktime = PIL_check_seconds_timer();
-				evt->prevclickx = event.x;
-				evt->prevclicky = event.y;
-			}
-			if (event.val == KM_RELEASE) {
-//				event.prevclicktime = 0;
-//				event.clickstyle = 0;
-				evt->clickstyle = 0;
-				printf("%i\n", event.clickstyle);
 			}
 			
 			wm_event_add(win, &event);

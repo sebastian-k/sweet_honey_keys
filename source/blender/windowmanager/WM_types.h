@@ -428,6 +428,7 @@ typedef struct wmEvent {
 	short val;			/* press, release, scrollvalue */
 	short clicktype;	/* click, hold or double click */
 	int x, y;			/* mouse pointer position, screen coord */
+	double clicktime;	/* the time the last keypress was done at */
 	int mval[2];		/* region mouse position, name convention pre 2.5 :) */
 	char utf8_buf[6];	/* from, ghost if utf8 is enabled for the platform,
 						 * BLI_str_utf8_size() must _always_ be valid, check
@@ -438,6 +439,7 @@ typedef struct wmEvent {
 	/* previous state, used for 'KM_CLICK', 'KM_HOLD' and 'KM_DBL_CLICK' */
 	short prevtype;
 	short prevval;
+	short prevclicktype;
 	int prevx, prevy;
 	double prevclicktime;
 	int prevclickx, prevclicky;

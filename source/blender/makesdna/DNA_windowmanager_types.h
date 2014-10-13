@@ -196,6 +196,8 @@ typedef struct wmWindow {
 
 	struct wmGesture *tweak;      /* internal for wm_operators.c */
 
+	struct wmTimer *mousetimer;   /* internal for wm_event_system.c, runs while mouse is pressed */
+
 	int drawmethod, drawfail;     /* internal for wm_draw.c only */
 	void *drawdata;               /* internal for wm_draw.c only */
 
@@ -237,7 +239,7 @@ typedef struct wmKeyMapItem {
 	/* event */
 	short type;                     /* event code itself */
 	short val;                      /* KM_ANY, KM_PRESS, KM_NOTHING etc */
-	short clicktype;               /* KM_CLICK, KM_HOLD, KM_DBL_CLICK */
+	short clicktype;                /* KM_CLICK, KM_HOLD, KM_DBL_CLICK */
 	short shift, ctrl, alt, oskey;  /* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;              /* rawkey modifier */
 
@@ -265,6 +267,7 @@ enum {
 	KMI_EXPANDED       = (1 << 1),
 	KMI_USER_MODIFIED  = (1 << 2),
 	KMI_UPDATE         = (1 << 3),
+	KMI_STICKY         = (1 << 4),
 };
 
 /* wmKeyMapItem.maptype */

@@ -712,7 +712,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 	wmWindowManager *wm = CTX_wm_manager(C);
 	GHOST_TEventType type = GHOST_GetEventType(evt);
 	int time = GHOST_GetEventTime(evt);
-	
+
 	if (type == GHOST_kEventQuit) {
 		WM_exit(C);
 	}
@@ -1122,6 +1122,7 @@ static int wm_window_timer(const bContext *C)
 					wm_autosave_timer(C, wm, wt);
 				else if (win) {
 					wmEvent event;
+
 					wm_event_init_from_window(win, &event);
 					
 					event.type = wt->event_type;
@@ -1130,6 +1131,22 @@ static int wm_window_timer(const bContext *C)
 					event.custom = EVT_DATA_TIMER;
 					event.customdata = wt;
 					wm_event_add(win, &event);
+
+					/* GHOST doesn't send multiple KM_PRESS events while the mouse is pressed, but
+					 * this is needed to correctly send KM_HOLD for the mouse. We solve this with
+					 * a timer 'TIMERMOUSE', which checks for KM_HOLD every 0.01 seconds (as long
+					 * as the mouse is pressed).
+					 *
+					 * This is a quite ugly hack, but it is propably the best solution/workaround */
+					if (wt->event_type == TIMERMOUSE) {
+						if (win->eventstate->val == KM_RELEASE) {
+							WM_event_remove_timer(wm, win, win->mousetimer);
+							retval = 0; /* just in case */
+							break;
+						}
+						event.clicktype = KM_HOLD;
+						wm_event_clicktype_set(win, NULL, &event);
+					}
 
 					retval = 1;
 				}
@@ -1190,7 +1207,7 @@ void wm_ghost_init(bContext *C)
 {
 	if (!g_system) {
 		GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
-		
+
 		g_system = GHOST_CreateSystem();
 		GHOST_AddEventConsumer(g_system, consumer);
 		

@@ -294,6 +294,7 @@ enum {
 	TIMERAUTOSAVE         = 0x0115,  /* timer event, autosave */
 	TIMERREPORT           = 0x0116,  /* timer event, reports */
 	TIMERREGION           = 0x0117,  /* timer event, region slide in/out */
+	TIMERMOUSE            = 0x0118,  /* timer event, while mouse is pressed */
 	TIMERF                = 0x011F,  /* last timer */
 
 	/* Tweak, gestures: 0x500x, 0x501x */

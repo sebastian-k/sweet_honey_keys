@@ -428,6 +428,7 @@ wmKeyMapItem *WM_keymap_verify_item(wmKeyMap *keymap, const char *idname, int ty
 	for (kmi = keymap->items.first; kmi; kmi = kmi->next)
 		if (strncmp(kmi->idname, idname, OP_MAX_TYPENAME) == 0)
 			break;
+
 	if (kmi == NULL) {
 		kmi = MEM_callocN(sizeof(wmKeyMapItem), "keymap entry");
 		
@@ -449,6 +450,10 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, const char *idname, int type,
 	
 	BLI_addtail(&keymap->items, kmi);
 	BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
+
+	if (STREQ("WM_OT_call_menu_pie", idname))
+		if (!(U.uiflag2 & USER_PIE_USE_STICKIES) && val == KM_HOLD)
+			val = KM_PRESS;
 
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
 	wm_keymap_item_properties_set(kmi);

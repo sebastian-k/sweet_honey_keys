@@ -471,7 +471,6 @@ processEvents(
 	 * ghost events and call base class pushEvent() method. */
 	
 	bool anyProcessed = false;
-	
 	do {
 		GHOST_TimerManager *timerMgr = getTimerManager();
 		
@@ -492,7 +491,7 @@ processEvents(
 		if (timerMgr->fireTimers(getMilliSeconds())) {
 			anyProcessed = true;
 		}
-		
+
 		while (XPending(m_display)) {
 			XEvent xevent;
 			XNextEvent(m_display, &xevent);

@@ -249,7 +249,7 @@ int GHOST_DispatchEvents(GHOST_SystemHandle systemhandle)
 GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle, GHOST_EventConsumerHandle consumerhandle)
 {
 	GHOST_ISystem *system = (GHOST_ISystem *) systemhandle;
-	
+
 	return system->addEventConsumer((GHOST_CallbackEventConsumer *)consumerhandle);
 }
 

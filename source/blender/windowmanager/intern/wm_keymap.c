@@ -452,8 +452,8 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, const char *idname, int type,
 	BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
 	if (STREQ("WM_OT_call_menu_pie", idname))
-		if (!(U.uiflag2 & USER_PIE_USE_STICKIES) && val == KM_HOLD)
-			val = KM_PRESS;
+		if (val == KM_HOLD)
+			kmi->flag |= KMI_PIE_STICKY;
 
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
 	wm_keymap_item_properties_set(kmi);
@@ -1127,12 +1127,18 @@ int WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
 		return 0;
 
 	if (k1->val != KM_ANY && k2->val != KM_ANY) {
+
+#if 0	/* thanks to clicktype those shouldn't be needed anymore */
 		/* take click, press, release conflict into account */
 		if (k1->val == KM_CLICK && ELEM(k2->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0)
 			return 0;
 		if (k2->val == KM_CLICK && ELEM(k1->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0)
 			return 0;
+#endif
+
 		if (k1->val != k2->val)
+			return 0;
+		if (k1->clicktype != k2->clicktype)
 			return 0;
 	}
 

@@ -403,7 +403,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	 * to make the DBL_CLICK conversion work, we just don't send this to UI, except mouse clicks */
 	if (((handler->flag & WM_HANDLER_ACCEPT_DBL_CLICK) == 0) &&
 	    (event->type != LEFTMOUSE) &&
-	    (event->val == KM_DBL_CLICK))
+	    (event->clicktype == KM_DBL_CLICK))
 	{
 		return WM_HANDLER_CONTINUE;
 	}
@@ -1510,8 +1510,9 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 		/* modal keymap checking returns handled events fine, but all hardcoded modal
 		 * handling typically swallows all events (OPERATOR_RUNNING_MODAL).
 		 * This bypass just disables support for double clicks in hardcoded modal handlers */
-		if (event->val == KM_DBL_CLICK) {
+		if (event->clicktype == KM_DBL_CLICK) {
 			event->val = KM_PRESS;
+			event->clicktype = 0;
 			*dbl_click_disabled = true;
 		}
 	}
@@ -1544,7 +1545,7 @@ static void wm_event_modalmap_end(wmEvent *event, bool dbl_click_disabled)
 		event->prevval = 0;
 	}
 	else if (dbl_click_disabled)
-		event->val = KM_DBL_CLICK;
+		event->clicktype = KM_DBL_CLICK;
 
 }
 
@@ -2028,13 +2029,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			wmWindow *win = CTX_wm_window(C);
 
 			if (win && win->eventstate->prevtype == event->type) {
-				if (event->val == KM_DBL_CLICK) {
+				if (event->clicktype == KM_DBL_CLICK) {
 					event->val = KM_PRESS;
+					event->clicktype = 0;
 					action |= wm_handlers_do_intern(C, event, handlers);
 					
 					/* revert value if not handled */
 					if (wm_action_not_handled(action)) {
-						event->val = KM_DBL_CLICK;
+						event->clicktype = KM_DBL_CLICK;
 					}
 				}
 			}
@@ -2954,7 +2956,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 static int wm_event_clicktype_get(wmEvent *event, wmEvent *event_state)
 {
 	/* make sure the type stays the same */
-	if (event && (!event->prevtype || event->type != event_state->prevtype))
+	if (event && (!event_state->prevtype || event->type != event_state->prevtype))
 		return 0;
 
 	if (event && event_state->prevval == KM_RELEASE && event->val == KM_PRESS) {
@@ -3133,7 +3135,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			wm_eventemulation(&event);
 
 			if (GHOST_kEventButtonDown)
-				win->mousetimer = WM_event_add_timer(wm, win, TIMERMOUSE, 0.01);
+				event.mousetimer = WM_event_add_timer(wm, NULL, TIMERMOUSE, 0.01);
 			
 			/* copy previous state to prev event state (two old!) */
 			evt->prevval = evt->val;

@@ -221,18 +221,29 @@ static void rna_userdef_select_mouse_set(PointerRNA *ptr, int value)
 		userdef->flag &= ~USER_LMOUSESELECT;
 }
 
-static void rna_userdef_pie_sticky_keys_toggle(PointerRNA *ptr, int value)
+static void rna_userdef_pie_sticky_keys_toggle(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	UserDef *userdef = (UserDef *)ptr->data;
-	wmKeyMap *km;
-	for (km = userdef->user_keymaps.first; km; km = km->next) {
+//	UserDef *userdef = (UserDef *)ptr->data;
+//	wmWindowManager *wm = bmain->wm.first;
+//	wmKeyMap *km;
+//	for (km = wm->addonconf->keymaps.first; km; km = km->next) {
 //		wmKeyMapItem *kmi;
-//		for () {
-
+//		for (kmi = km->items.first; kmi; kmi = kmi->next) {
+//			if (STREQ(kmi->idname, "WM_OT_call_menu_pie")) {
+//				if (!(userdef->uiflag2 & USER_PIE_USE_STICKIES)) {
+//					if (kmi->clicktype == KM_HOLD) {
+//						kmi->val = KM_PRESS;
+//						kmi->clicktype = 0;
+//					}
+//				}
+//				else if (kmi->flag & KMI_PIE_STICKY) {
+//					kmi->clicktype = KM_HOLD;
+//				}
+//				WM_keyconfig_update_tag(km, kmi);
+//			}
 //		}
-		printf("%s\n", km->idname);
-	}
-//	if (userdef->uiflag2 & USER_PIE_USE_STICKIES)
+//	}
+//	rna_userdef_update(bmain, scene, ptr);
 
 }
 
@@ -3250,7 +3261,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag2", USER_PIE_USE_STICKIES);
 	RNA_def_property_ui_text(prop, "Sticky Keys", "Click the key to toggle - hold the key to spawn a pie "
 	                         "(using click timeout)");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	RNA_def_property_update(prop, 0, "rna_userdef_pie_sticky_keys_toggle");
 
 	prop = RNA_def_property(srna, "pie_initial_timeout", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 1000);

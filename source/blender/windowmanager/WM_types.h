@@ -436,6 +436,8 @@ typedef struct wmEvent {
 	char ascii;			/* from ghost, fallback if utf8 isn't set */
 	char pad;
 
+	struct wmTimer *mousetimer;   /* runs while mouse is pressed */
+
 	/* previous state, used for 'KM_CLICK', 'KM_HOLD' and 'KM_DBL_CLICK' */
 	short prevtype;
 	short prevval;

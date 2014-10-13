@@ -1138,9 +1138,9 @@ static int wm_window_timer(const bContext *C)
 					 * as the mouse is pressed).
 					 *
 					 * This is a quite ugly hack, but it is propably the best solution/workaround */
-					if (wt->event_type == TIMERMOUSE) {
+					if (wt->event_type == TIMER) {
 						if (win->eventstate->val == KM_RELEASE) {
-							WM_event_remove_timer(wm, win, win->mousetimer);
+							WM_event_remove_timer(wm, win, event.mousetimer);
 							retval = 0; /* just in case */
 							break;
 						}

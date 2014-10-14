@@ -1980,9 +1980,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 			}
 
 			if (action & WM_HANDLER_BREAK) {
-				if (always_pass) {
+				if (always_pass)
 					action &= ~WM_HANDLER_BREAK;
-				}
 				else
 					break;
 			}
@@ -2955,6 +2954,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
 static int wm_event_clicktype_get(wmEvent *event, wmEvent *event_state)
 {
+	short retval = 0;
+
 	/* make sure the type stays the same */
 	if (event && (!event_state->prevtype || event->type != event_state->prevtype))
 		return 0;
@@ -2963,20 +2964,18 @@ static int wm_event_clicktype_get(wmEvent *event, wmEvent *event_state)
 		if ((ISMOUSE(event->type) == false) || ((ABS(event->x - event_state->prevclickx)) <= 2 &&
 		                                        (ABS(event->y - event_state->prevclicky)) <= 2))
 		{
-			if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time) {
-				return KM_DBL_CLICK;
-			}
+			if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time)
+				retval = KM_DBL_CLICK;
 		}
 	}
 	else if ((PIL_check_seconds_timer() - event_state->clicktime) * 100 <= U.click_timeout) {
 		if (event && event->val == KM_RELEASE && event_state->clicktype != KM_DBL_CLICK)
-			return KM_CLICK;
+			retval = KM_CLICK;
 	}
-	else {
-		if ((event && event->val == KM_PRESS) || event_state->type == TIMERMOUSE)
-			return KM_HOLD;
-	}
-	return 0;
+	else if ((event && event->val == KM_PRESS) || event_state->type == TIMERMOUSE)
+			retval = KM_HOLD;
+
+	return retval;
 }
 
 /* Clicktype test
@@ -2990,7 +2989,6 @@ void wm_event_clicktype_set(wmWindow *win, wmEvent *event, wmEvent *event_state)
 {
 	const char *str_print = "";
 	short clicktype;
-
 
 	if (event && /* if called from wm_window_timer, we don't have event */
 	    event->val == KM_PRESS &&

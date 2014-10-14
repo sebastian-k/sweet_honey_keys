@@ -3082,7 +3082,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			/* add scrollbar */
 			if (len > layoutdata.visual_items) {
 				col = uiLayoutColumn(row, false);
-				uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.25, UI_UNIT_Y * dyn_data->visual_height,
+				uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * dyn_data->visual_height,
 				          &ui_list->list_scroll, 0, dyn_data->height - dyn_data->visual_height,
 				          dyn_data->visual_height, 0, "");
 			}

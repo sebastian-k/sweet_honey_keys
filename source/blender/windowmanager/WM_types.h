@@ -183,10 +183,9 @@ enum {
 #define KM_RELEASE	2
 
 /* clicktype */
-#define KM_CLICK		3
-#define KM_HOLD			4
-#define KM_DBL_CLICK	5
-
+#define KM_CLICK		3	/* clicked key	(clicktime <= U.click_timeout) */
+#define KM_HOLD			4	/* held key		(clicktime >  U.click_timeout) */
+#define KM_DBL_CLICK	5	/* double click */
 
 /* ************** UI Handler ***************** */
 
@@ -441,7 +440,6 @@ typedef struct wmEvent {
 	/* previous state, used for 'KM_CLICK', 'KM_HOLD' and 'KM_DBL_CLICK' */
 	short prevtype;
 	short prevval;
-	short prevclicktype;
 	int prevx, prevy;
 	double prevclicktime;
 	int prevclickx, prevclicky;

@@ -451,10 +451,6 @@ wmKeyMapItem *WM_keymap_add_item(wmKeyMap *keymap, const char *idname, int type,
 	BLI_addtail(&keymap->items, kmi);
 	BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
-	if (STREQ("WM_OT_call_menu_pie", idname))
-		if (val == KM_HOLD)
-			kmi->flag |= KMI_PIE_STICKY;
-
 	keymap_event_set(kmi, type, val, modifier, keymodifier);
 	wm_keymap_item_properties_set(kmi);
 

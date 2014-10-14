@@ -265,7 +265,6 @@ enum {
 	KMI_EXPANDED       = (1 << 1),
 	KMI_USER_MODIFIED  = (1 << 2),
 	KMI_UPDATE         = (1 << 3),
-	KMI_PIE_STICKY     = (1 << 4),
 };
 
 /* wmKeyMapItem.maptype */
